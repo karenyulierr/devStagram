@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 
 class RegisterController extends Controller {
     public  function index() {
@@ -15,7 +16,8 @@ class RegisterController extends Controller {
     public function store( Request $request ) {
         // dd( $request );
         // dd();
-
+        //Modificar el reuqtesy
+        $request->request->add( [ 'username'=>Str::slug( $request->username ) ] );
         //Validación
         $this->validate( $request, [
             'name'=>'required|max:30',
@@ -24,15 +26,28 @@ class RegisterController extends Controller {
             'password'=>'required|confirmed|min:6'
         ] );
 
-        dd(Str::slug($request->username));
+        // dd( Str::slug( $request->username ) );
         User::create( [
             'name'=>$request->name,
-            'username'=>Str::slug($request->username),
+            'username'=>$request->username,
             'email'=>$request->email,
             'password'=> Hash::make( $request->password )
         ] );
 
+        /**Autenticar un usuario */
+
+        // auth()->attempt( [
+        //     'email'=>$request->email,
+        //     'password'=>$request->password,
+        // ] );
+
+
+        /**Otra fforma */
+        auth()->attempt( $request->only( 'email', 'password' ) );
+
         /**Redireccionar al usuario */
+
+        return redirect()->route('post.index', auth()->user()->username);
 
     }
 }
